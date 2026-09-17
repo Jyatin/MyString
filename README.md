@@ -45,6 +45,7 @@ MyString/
 │   └── workflows/
 │       └── ci.yml              # Build, test and sanitizer CI
 ├── CMakeLists.txt              # Portable build configuration
+├── LICENSE                     # MIT license
 └── README.md
 ```
 
@@ -80,8 +81,8 @@ The example exercises construction, concatenation, capacity, append, search, pre
 language : Modern C++17
 project  : MyString
 combined : Modern C++17 - MyString
-size     : 24
-capacity : 24
+size     : 23
+capacity : 30
 append   : Modern C++17 - MyString library
 find     : 17
 contains : true
@@ -97,7 +98,7 @@ cleared  : "" (empty=true)
 === demo complete ===
 ```
 
-The CI workflow builds this demo and runs the test suite on pushes and pull requests. It also runs the tests under AddressSanitizer and UndefinedBehaviorSanitizer on Ubuntu.
+The CI workflow builds the demo and runs the test suite on pushes and pull requests. It also runs the tests under AddressSanitizer and UndefinedBehaviorSanitizer on Ubuntu.
 
 ## API at a glance
 
@@ -118,7 +119,7 @@ The CI workflow builds this demo and runs the test suite on pushes and pull requ
 
 ## Memory-management design
 
-Each `MyString` owns one character buffer and maintains three invariants:
+Each `MyString` owns one character buffer and maintains these invariants:
 
 1. `data_[size_]` is always the null terminator.
 2. `size_ <= capacity_`.
