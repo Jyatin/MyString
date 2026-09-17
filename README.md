@@ -1,55 +1,184 @@
-# MyString — a small `std::string`-style class built from scratch
+# MyString — A `std::string`-Style Class Built from Scratch
 
 [![C++ CI](https://github.com/Jyatin/MyString/actions/workflows/ci.yml/badge.svg)](https://github.com/Jyatin/MyString/actions/workflows/ci.yml)
 [![C++17](https://img.shields.io/badge/C%2B%2B-17-00599C.svg)](https://en.cppreference.com/w/cpp/17)
+[![License](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE)
 
-A production-minded custom string implementation in modern C++17. The goal is not to replace `std::string`, but to make the mechanics behind a dynamic string explicit: ownership, heap allocation, deep copying, move semantics, capacity growth, bounds checking, searching, and operator overloading.
+> A systems-oriented C++17 string implementation focused on **memory ownership, Rule of Five, move semantics, dynamic capacity growth, exception safety, and API design**.
 
-> **Constraint:** the implementation does not use `std::string` for its internal storage. It owns a null-terminated `char` buffer and manages that buffer itself.
+`MyString` is a small `std::string`-style class implemented without using `std::string` as its internal storage. Each object owns a dynamically allocated, null-terminated character buffer and manages that resource explicitly.
 
-## What changed
+**This project is not intended to replace `std::string`.** It is an engineering exercise designed to make the mechanisms behind a high-level string abstraction visible and testable.
 
-The original project was a compact Rule-of-Five demonstration. It is now organised as a small library with a demo, automated tests, CMake build support, and GitHub Actions CI.
+---
 
-### Core functionality
+## ✨ Highlights
 
-- Rule of Five: destructor, copy constructor/assignment, move constructor/assignment
-- Dynamic heap-backed storage with geometric capacity growth
-- Stronger copy-assignment exception safety using copy-and-swap
-- `size()`, `length()`, `capacity()`, `empty()`, `clear()`, `reserve()`
-- `operator[]`, checked `at()`, `front()`, `back()`
-- `c_str()` and mutable/const `data()` access
-- `append()` and `operator+=` for strings and characters
-- Concatenation with `operator+`
-- Equality and lexicographical relational operators
+- 🧠 **Rule of Five** — explicit copy/move ownership semantics
+- 💾 **Manual dynamic storage** — heap-backed character buffer
+- 📈 **Geometric capacity growth** — efficient repeated appends
+- 🛡️ **Exception-aware assignment** — copy-and-swap
+- 🔎 **Searching** — character and substring search
+- ✂️ **String operations** — append, substring, reverse, prefix/suffix checks
+- ⚡ **Move semantics** — ownership transfer without character copying
+- 🧪 **Automated tests** — edge cases and ownership behavior
+- 🔧 **CMake support** — portable project configuration
+- 🤖 **GitHub Actions CI** — build, test, and sanitizer validation
+- 🧩 **C++17 API** — including `std::string_view` construction
+
+---
+
+## 📌 Engineering Case Study
+
+### Project Background
+
+A string looks simple at the API level, but implementing one from scratch requires solving several systems-level problems: resource ownership, object lifetime, dynamic allocation, copying, moving, resizing, bounds checking, and exception safety.
+
+The purpose of `MyString` was to expose those mechanisms rather than hide them behind the standard library.
+
+### Major Engineering Challenges
+
+**1. Resource Ownership**  
+Each object owns its character buffer and is responsible for allocating, resizing, and releasing it safely.
+
+**2. Rule of Five**  
+The implementation explicitly handles destruction, copying, copy assignment, moving, and move assignment so ownership is never accidentally shared.
+
+**3. Capacity Management**  
+The class maintains separate `size` and `capacity` values and grows the allocation geometrically. This avoids reallocating the buffer for every append.
+
+**4. Exception Safety**  
+Copy assignment uses the **copy-and-swap** technique so the existing object is not destroyed before replacement state has been prepared successfully.
+
+**5. API Safety**  
+The interface provides unchecked `operator[]` as well as bounds-checked `at()`, plus `front()`, `back()`, `c_str()`, and `data()` access.
+
+### Design Flow
+
+```text
+User-facing API
+      ↓
+Object lifetime
+      ↓
+Resource ownership
+      ↓
+Heap allocation
+      ↓
+Copy / Move semantics
+      ↓
+Capacity management
+      ↓
+Algorithms + operators
+      ↓
+Tests + sanitizers + CI
+```
+
+### Key Learning
+
+Building a small string implementation makes concepts such as **RAII, deep copy, move semantics, dynamic arrays, exception safety, invariants, and amortized complexity** concrete instead of purely theoretical.
+
+➡️ **Read the full technical case study:** [`docs/ENGINEERING_CASE_STUDY.md`](docs/ENGINEERING_CASE_STUDY.md)
+
+---
+
+## 🚀 Functionality
+
+### Construction & ownership
+
+- Default and C-string construction
+- Character construction
+- `std::string_view` construction
+- Deep copy construction
+- Move construction
+- Copy assignment
+- Move assignment
+- Self-assignment handling
+
+### Capacity & mutation
+
+- `size()` / `length()`
+- `capacity()`
+- `empty()`
+- `clear()`
+- `reserve()`
+- `resize()`
+- `push_back()`
+- `append()`
+- `operator+=`
+
+### Access
+
+- `operator[]`
+- `at()` with bounds checking
+- `front()` / `back()`
+- `data()`
+- `c_str()`
+
+### Algorithms & utilities
+
 - `find()` for characters and substrings
-- `contains()`, `starts_with()`, `ends_with()`
-- `substr()` and non-mutating `reversed()`
-- Stream insertion/extraction (`<<`, `>>`)
-- `std::string_view` construction, including strings containing embedded `\0` bytes
-- Self-append protection and a reusable moved-from state
+- `contains()`
+- `starts_with()`
+- `ends_with()`
+- `substr()`
+- `reversed()`
 
-## Project structure
+### Operators
+
+- `operator+`
+- `operator+=`
+- `==`, `!=`
+- `<`, `<=`, `>`, `>=`
+- stream insertion `<<`
+- stream extraction `>>`
+
+---
+
+## 🏗️ Architecture
+
+The implementation is deliberately split into public interface, implementation, examples, and tests:
 
 ```text
 MyString/
+│
 ├── include/
-│   └── MyString.h              # Public class interface
+│   └── MyString.h
+│
 ├── src/
-│   └── MyString.cpp            # Memory management + implementation
+│   └── MyString.cpp
+│
 ├── examples/
-│   └── main.cpp                # Feature demonstration
+│   └── main.cpp
+│
 ├── tests/
-│   └── test_mystring.cpp       # Assertion-based test suite
+│   └── test_mystring.cpp
+│
+├── docs/
+│   └── ENGINEERING_CASE_STUDY.md
+│
 ├── .github/
 │   └── workflows/
-│       └── ci.yml              # Build, test and sanitizer CI
-├── CMakeLists.txt              # Portable build configuration
-├── LICENSE                     # MIT license
+│       └── ci.yml
+│
+├── CMakeLists.txt
+├── LICENSE
 └── README.md
 ```
 
-## Quick start
+### Why this structure?
+
+| Directory | Responsibility |
+|---|---|
+| `include/` | Public API exposed to users |
+| `src/` | Implementation and memory-management logic |
+| `examples/` | Runnable feature demonstration |
+| `tests/` | Automated behavioral and edge-case tests |
+| `docs/` | Deeper engineering documentation |
+| `.github/` | Continuous integration |
+
+---
+
+## ⚡ Quick Start
 
 ### GCC / Clang
 
@@ -70,11 +199,19 @@ ctest --test-dir build --output-on-failure
 ./build/mystring_demo
 ```
 
-On Windows with a Visual Studio generator, build the same CMake targets from the generated solution or with `cmake --build build --config Release`.
+### Windows + Visual Studio generator
 
-## Demo output
+```bash
+cmake -S . -B build
+cmake --build build --config Release
+ctest --test-dir build -C Release --output-on-failure
+```
 
-The example exercises construction, concatenation, capacity, append, search, prefix/suffix checks, substring extraction, reversal, deep copy, move construction, and clearing.
+---
+
+## 🖥️ Demo
+
+The example demonstrates construction, concatenation, append, searching, prefix/suffix checks, substring extraction, reversal, deep copying, move construction, and clearing.
 
 ```text
 === MyString demo ===
@@ -98,54 +235,119 @@ cleared  : "" (empty=true)
 === demo complete ===
 ```
 
-The CI workflow builds the demo and runs the test suite on pushes and pull requests. It also runs the tests under AddressSanitizer and UndefinedBehaviorSanitizer on Ubuntu.
+The output is generated by the runnable example in [`examples/main.cpp`](examples/main.cpp).
 
-## API at a glance
+---
+
+## 🧮 API & Complexity
 
 | API | Purpose | Complexity |
 |---|---|---:|
-| `size()` / `length()` | Current number of characters | O(1) |
+| `size()` / `length()` | Current character count | O(1) |
 | `capacity()` | Allocated character capacity | O(1) |
 | `operator[]` | Unchecked indexed access | O(1) |
-| `at()` | Bounds-checked indexed access | O(1) |
-| `append()` / `+=` | Add characters or another string | Amortized O(n) |
-| `reserve()` | Pre-allocate capacity | O(n) when reallocation occurs |
-| `find()` | Find character/subsequence | O(n·m) worst case |
+| `at()` | Bounds-checked access | O(1) |
+| `push_back()` | Add one character | Amortized O(1) |
+| `append()` | Add another sequence | O(n) |
+| `reserve()` | Increase allocated capacity | O(n) if reallocation occurs |
+| `find()` | Search for character/subsequence | O(n·m) worst case |
 | `substr()` | Create a substring | O(k) |
-| `reversed()` | Return a reversed copy | O(n) |
+| `reversed()` | Return reversed copy | O(n) |
 | comparisons | Lexicographical comparison | O(min(n,m)) |
 
-`append()` uses geometric capacity growth, so repeated appends avoid an allocation on every operation.
+The exact constant factors depend on allocation and input size. The important design choice is that geometric capacity growth avoids a fresh allocation for every single append.
 
-## Memory-management design
+---
 
-Each `MyString` owns one character buffer and maintains these invariants:
+## 🧠 Memory Management
 
-1. `data_[size_]` is always the null terminator.
-2. `size_ <= capacity_`.
-3. The allocated buffer contains at least `capacity_ + 1` characters.
+Each object maintains three important pieces of state:
 
-Copying allocates independent storage, so modifying a copy cannot mutate the source. Moving transfers the owned buffer without copying its characters; the source becomes an empty, reusable object.
+```text
+                    MyString
+                ┌──────────────┐
+                │ data_        │ ──────► [characters ... '\0']
+                │ size_        │
+                │ capacity_    │
+                └──────────────┘
+```
 
-Copy assignment uses **copy-and-swap**, which avoids destroying the existing state before the replacement allocation succeeds.
+The core invariants are:
 
-## Testing
+1. `size_ <= capacity_`.
+2. `data_[size_]` is the null terminator.
+3. The allocation contains at least `capacity_ + 1` characters.
 
-The test suite covers:
+### Copy
+
+```text
+original ──► [H e l l o \0]
+                  ↑
+                copy
+                  ↓
+copy     ──► [H e l l o \0]
+```
+
+The copy owns independent storage, so modifying it does not modify the original.
+
+### Move
+
+```text
+source ──► [H e l l o \0]
+              │
+              │ ownership transfer
+              ▼
+target ──► [H e l l o \0]
+
+source ──► empty / reusable state
+```
+
+Move construction transfers the buffer instead of copying every character.
+
+---
+
+## 🛡️ Exception Safety
+
+Copy assignment follows the **copy-and-swap** pattern:
+
+```text
+Existing object
+      │
+      ├── create copy ──► temporary
+      │                     │
+      │                     ▼
+      └───────────────► swap resources
+                            │
+                            ▼
+                     temporary destroyed
+```
+
+This keeps replacement state separate from the existing object until the copy has been successfully created.
+
+---
+
+## 🧪 Testing
+
+The test suite covers normal behavior, ownership semantics, and edge cases including:
 
 - default and normal construction
-- indexed access and `at()` exceptions
+- indexed access
+- `at()` boundary errors
 - deep copy semantics
-- copy and move assignment
+- copy assignment
+- move construction
+- move assignment
 - moved-from object reuse
-- capacity preservation after `clear()`
+- self-assignment
 - self-append
-- searching and substring boundaries
+- capacity behavior after `clear()`
+- searching
+- substring boundaries
 - lexicographical comparisons
 - stream input/output
 - embedded null characters
 
-Run it with:
+Run the tests with:
 
 ```bash
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug
@@ -153,30 +355,84 @@ cmake --build build --parallel
 ctest --test-dir build --output-on-failure
 ```
 
-## Why build this instead of using `std::string`?
+### Sanitizers
 
-Because it is a useful systems-programming exercise. Implementing a small string type exposes concepts that are easy to hide behind the standard library:
+The CI workflow also validates the test suite using:
 
-- RAII and ownership
+- AddressSanitizer
+- UndefinedBehaviorSanitizer
+
+This is particularly useful for a project that deliberately manages dynamic memory.
+
+---
+
+## 🤖 Continuous Integration
+
+GitHub Actions automatically builds and tests the project on pushes and pull requests. The sanitizer job provides an additional memory/undefined-behavior check on Ubuntu.
+
+This keeps the repository closer to a real library workflow rather than relying only on a manually run demo.
+
+---
+
+## 🎯 Why Build This Instead of Using `std::string`?
+
+In normal application development, **use `std::string`**. It is mature, portable, optimized, and heavily tested.
+
+`MyString` exists for a different reason: understanding what a string abstraction has to do internally.
+
+The project provides hands-on practice with:
+
+- RAII
+- resource ownership
+- shallow vs. deep copy
 - Rule of Five
-- shallow vs deep copy
 - move semantics
 - exception safety
-- dynamic allocation and reallocation
+- dynamic memory allocation
+- capacity growth
 - object lifetime
 - operator overloading
-- API design and invariants
+- API contracts
+- class invariants
 - algorithmic complexity
+- automated testing
+- CI and sanitizers
 
-For application development, prefer the battle-tested standard library. For learning C++ internals, this project makes those mechanisms visible.
+---
 
-## License
+## 🔮 Future Improvements
+
+Possible extensions:
+
+- iterator support (`begin`, `end`, `cbegin`, `cend`)
+- richer `std::string_view` interoperability
+- additional search algorithms
+- configurable allocator support
+- dedicated benchmark suite
+- fuzz testing for boundary-heavy operations
+
+These can be added without changing the project's core educational focus.
+
+---
+
+## 📚 Documentation
+
+- [Engineering Case Study](docs/ENGINEERING_CASE_STUDY.md)
+- [Public API](include/MyString.h)
+- [Implementation](src/MyString.cpp)
+- [Example](examples/main.cpp)
+- [Tests](tests/test_mystring.cpp)
+- [Build Configuration](CMakeLists.txt)
+
+---
+
+## 📄 License
 
 MIT — see [`LICENSE`](LICENSE).
 
-## Author
+## 👨‍💻 Author
 
 **Jyatin Kumar Singh**  
 C++ / Full-Stack Developer · Open Source Contributor
 
-GitHub: https://github.com/Jyatin
+[GitHub](https://github.com/Jyatin)
