@@ -8,24 +8,17 @@
 #include <utility>
 
 std::size_t MyString::text_length(const char* text) noexcept {
-    if (text == nullptr) {
-        return 0;
-    }
+    if (text == nullptr) return 0;
     std::size_t length = 0;
-    while (text[length] != '\0') {
-        ++length;
-    }
+    while (text[length] != '\0') ++length;
     return length;
 }
 
 void MyString::copy_n(char* destination, const char* source, std::size_t count) noexcept {
-    for (std::size_t i = 0; i < count; ++i) {
-        destination[i] = source[i];
-    }
+    for (std::size_t i = 0; i < count; ++i) destination[i] = source[i];
 }
 
 MyString::MyString() : data_(new char[1]{'\0'}), size_(0), capacity_(0) {}
-
 MyString::MyString(const char* text) : MyString(std::string_view(text == nullptr ? "" : text)) {}
 
 MyString::MyString(std::string_view text)
@@ -42,33 +35,27 @@ MyString::MyString(const MyString& other)
 
 MyString::MyString(MyString&& other) noexcept
     : data_(other.data_), size_(other.size_), capacity_(other.capacity_) {
-    other.data_ = new char[1]{'\0'};
+    other.data_ = nullptr;
     other.size_ = 0;
     other.capacity_ = 0;
 }
 
-MyString::~MyString() {
-    delete[] data_;
-}
+MyString::~MyString() { delete[] data_; }
 
 MyString& MyString::operator=(const MyString& other) {
-    if (this == &other) {
-        return *this;
-    }
+    if (this == &other) return *this;
     MyString copy(other);
     swap(copy);
     return *this;
 }
 
 MyString& MyString::operator=(MyString&& other) noexcept {
-    if (this == &other) {
-        return *this;
-    }
+    if (this == &other) return *this;
     delete[] data_;
     data_ = other.data_;
     size_ = other.size_;
     capacity_ = other.capacity_;
-    other.data_ = new char[1]{'\0'};
+    other.data_ = nullptr;
     other.size_ = 0;
     other.capacity_ = 0;
     return *this;
@@ -78,9 +65,9 @@ std::size_t MyString::size() const noexcept { return size_; }
 std::size_t MyString::length() const noexcept { return size_; }
 std::size_t MyString::capacity() const noexcept { return capacity_; }
 bool MyString::empty() const noexcept { return size_ == 0; }
-const char* MyString::c_str() const noexcept { return data_; }
+const char* MyString::c_str() const noexcept { return data_ != nullptr ? data_ : ""; }
 char* MyString::data() noexcept { return data_; }
-const char* MyString::data() const noexcept { return data_; }
+const char* MyString::data() const noexcept { return data_ != nullptr ? data_ : ""; }
 
 char& MyString::operator[](std::size_t index) noexcept { return data_[index]; }
 const char& MyString::operator[](std::size_t index) const noexcept { return data_[index]; }
@@ -89,40 +76,36 @@ char& MyString::at(std::size_t index) {
     if (index >= size_) throw std::out_of_range("MyString::at: index out of range");
     return data_[index];
 }
-
 const char& MyString::at(std::size_t index) const {
     if (index >= size_) throw std::out_of_range("MyString::at: index out of range");
     return data_[index];
 }
-
 char& MyString::front() {
     if (empty()) throw std::out_of_range("MyString::front: empty string");
     return data_[0];
 }
-
 const char& MyString::front() const {
     if (empty()) throw std::out_of_range("MyString::front: empty string");
     return data_[0];
 }
-
 char& MyString::back() {
     if (empty()) throw std::out_of_range("MyString::back: empty string");
     return data_[size_ - 1];
 }
-
 const char& MyString::back() const {
     if (empty()) throw std::out_of_range("MyString::back: empty string");
     return data_[size_ - 1];
 }
 
 void MyString::clear() noexcept {
+    if (data_ == nullptr) data_ = new char[1]{'\0'};
     size_ = 0;
     data_[0] = '\0';
 }
 
 void MyString::ensure_capacity(std::size_t required) {
     if (required <= capacity_) return;
-    std::size_t new_capacity = std::max(required, capacity_ == 0 ? std::size_t{1} : capacity_ * 2);
+    const std::size_t new_capacity = std::max(required, capacity_ == 0 ? std::size_t{1} : capacity_ * 2);
     char* replacement = new char[new_capacity + 1];
     copy_n(replacement, data_, size_);
     replacement[size_] = '\0';
@@ -164,7 +147,7 @@ MyString& MyString::append(const char* text) {
     if (text == nullptr) return *this;
     const std::size_t count = text_length(text);
     if (count == 0) return *this;
-    if (text >= data_ && text <= data_ + size_) {
+    if (data_ != nullptr && text >= data_ && text <= data_ + size_) {
         MyString copy(text);
         return append(copy);
     }
@@ -187,9 +170,7 @@ MyString& MyString::operator+=(const char* text) { return append(text); }
 MyString& MyString::operator+=(char ch) { return append(ch); }
 
 std::size_t MyString::find(char ch, std::size_t pos) const noexcept {
-    for (std::size_t i = pos; i < size_; ++i) {
-        if (data_[i] == ch) return i;
-    }
+    for (std::size_t i = pos; i < size_; ++i) if (data_[i] == ch) return i;
     return npos;
 }
 
@@ -222,14 +203,13 @@ bool MyString::ends_with(const MyString& suffix) const noexcept {
 MyString MyString::substr(std::size_t pos, std::size_t count) const {
     if (pos > size_) throw std::out_of_range("MyString::substr: position out of range");
     const std::size_t actual = std::min(count, size_ - pos);
-    return MyString(std::string_view(data_ + pos, actual));
+    return MyString(std::string_view(data(), actual));
 }
 
 MyString MyString::reversed() const {
     MyString result(*this);
-    for (std::size_t left = 0, right = size_ == 0 ? 0 : size_ - 1; left < right; ++left, --right) {
+    for (std::size_t left = 0, right = size_ == 0 ? 0 : size_ - 1; left < right; ++left, --right)
         std::swap(result.data_[left], result.data_[right]);
-    }
     return result;
 }
 
@@ -260,7 +240,7 @@ bool operator>(const MyString& lhs, const MyString& rhs) noexcept { return lhs.c
 bool operator>=(const MyString& lhs, const MyString& rhs) noexcept { return lhs.compare(rhs) >= 0; }
 
 std::ostream& operator<<(std::ostream& out, const MyString& value) {
-    return out.write(value.data_, static_cast<std::streamsize>(value.size_));
+    return out.write(value.c_str(), static_cast<std::streamsize>(value.size_));
 }
 
 std::istream& operator>>(std::istream& in, MyString& value) {
