@@ -71,6 +71,7 @@ private:
     char* data_;
     std::size_t size_;
     std::size_t capacity_;
+    static char empty_data_;
 
     static std::size_t text_length(const char* text) noexcept;
     static void copy_n(char* destination, const char* source, std::size_t count) noexcept;
