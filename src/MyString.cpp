@@ -7,6 +7,8 @@
 #include <stdexcept>
 #include <utility>
 
+char MyString::empty_data_ = '\0';
+
 std::size_t MyString::text_length(const char* text) noexcept {
     if (text == nullptr) return 0;
     std::size_t length = 0;
@@ -35,12 +37,14 @@ MyString::MyString(const MyString& other)
 
 MyString::MyString(MyString&& other) noexcept
     : data_(other.data_), size_(other.size_), capacity_(other.capacity_) {
-    other.data_ = nullptr;
+    other.data_ = &empty_data_;
     other.size_ = 0;
     other.capacity_ = 0;
 }
 
-MyString::~MyString() { delete[] data_; }
+MyString::~MyString() {
+    if (data_ != &empty_data_) delete[] data_;
+}
 
 MyString& MyString::operator=(const MyString& other) {
     if (this == &other) return *this;
@@ -51,11 +55,11 @@ MyString& MyString::operator=(const MyString& other) {
 
 MyString& MyString::operator=(MyString&& other) noexcept {
     if (this == &other) return *this;
-    delete[] data_;
+    if (data_ != &empty_data_) delete[] data_;
     data_ = other.data_;
     size_ = other.size_;
     capacity_ = other.capacity_;
-    other.data_ = nullptr;
+    other.data_ = &empty_data_;
     other.size_ = 0;
     other.capacity_ = 0;
     return *this;
@@ -65,9 +69,9 @@ std::size_t MyString::size() const noexcept { return size_; }
 std::size_t MyString::length() const noexcept { return size_; }
 std::size_t MyString::capacity() const noexcept { return capacity_; }
 bool MyString::empty() const noexcept { return size_ == 0; }
-const char* MyString::c_str() const noexcept { return data_ != nullptr ? data_ : ""; }
+const char* MyString::c_str() const noexcept { return data_; }
 char* MyString::data() noexcept { return data_; }
-const char* MyString::data() const noexcept { return data_ != nullptr ? data_ : ""; }
+const char* MyString::data() const noexcept { return data_; }
 
 char& MyString::operator[](std::size_t index) noexcept { return data_[index]; }
 const char& MyString::operator[](std::size_t index) const noexcept { return data_[index]; }
@@ -98,7 +102,7 @@ const char& MyString::back() const {
 }
 
 void MyString::clear() noexcept {
-    if (data_ == nullptr) data_ = new char[1]{'\0'};
+    if (data_ == &empty_data_) return;
     size_ = 0;
     data_[0] = '\0';
 }
@@ -109,7 +113,7 @@ void MyString::ensure_capacity(std::size_t required) {
     char* replacement = new char[new_capacity + 1];
     copy_n(replacement, data_, size_);
     replacement[size_] = '\0';
-    delete[] data_;
+    if (data_ != &empty_data_) delete[] data_;
     data_ = replacement;
     capacity_ = new_capacity;
 }
@@ -119,7 +123,7 @@ void MyString::reserve(std::size_t new_capacity) {
     char* replacement = new char[new_capacity + 1];
     copy_n(replacement, data_, size_);
     replacement[size_] = '\0';
-    delete[] data_;
+    if (data_ != &empty_data_) delete[] data_;
     data_ = replacement;
     capacity_ = new_capacity;
 }
@@ -147,7 +151,7 @@ MyString& MyString::append(const char* text) {
     if (text == nullptr) return *this;
     const std::size_t count = text_length(text);
     if (count == 0) return *this;
-    if (data_ != nullptr && text >= data_ && text <= data_ + size_) {
+    if (data_ != &empty_data_ && text >= data_ && text <= data_ + size_) {
         MyString copy(text);
         return append(copy);
     }
@@ -203,7 +207,7 @@ bool MyString::ends_with(const MyString& suffix) const noexcept {
 MyString MyString::substr(std::size_t pos, std::size_t count) const {
     if (pos > size_) throw std::out_of_range("MyString::substr: position out of range");
     const std::size_t actual = std::min(count, size_ - pos);
-    return MyString(std::string_view(data(), actual));
+    return MyString(std::string_view(data_, actual));
 }
 
 MyString MyString::reversed() const {
