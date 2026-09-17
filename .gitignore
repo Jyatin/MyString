@@ -1,18 +1,21 @@
-﻿# Build files
-*.exe
-*.out
-*.o
-*.obj
-
-# Visual Studio Code
-.vscode/
-
-# Debug files
-*.pdb
-*.ilk
-
-# CMake
+# Build artifacts
+build/
+build-*/
 CMakeFiles/
 CMakeCache.txt
 cmake_install.cmake
 Makefile
+*.o
+*.obj
+*.out
+*.exe
+
+# IDE files
+.vscode/
+.idea/
+*.user
+*.suo
+
+# Debug / compiler artifacts
+*.pdb
+*.ilk
