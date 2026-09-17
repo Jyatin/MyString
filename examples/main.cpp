@@ -11,7 +11,8 @@ int main() {
     std::cout << "language : " << language << '\n';
     std::cout << "project  : " << project << '\n';
 
-    MyString combined = language + " - " + project;
+    MyString combined = language + MyString(" - ");
+    combined += project;
     std::cout << "combined : " << combined << '\n';
     std::cout << "size     : " << combined.size() << '\n';
     std::cout << "capacity : " << combined.capacity() << '\n';
